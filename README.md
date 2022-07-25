@@ -30,6 +30,41 @@ To deploy this project run
 uvicorn main:ironsight_api --reload
 ```
 
+## Ironsight API Migration Progress
+
+- [ ] getVMList()
+- [ ] getLabList()
+- [ ] getTemplateList()
+- [ ] getNewsList()
+- [ ] getDocCount()
+- [ ] getCPUUsage()
+- [ ] getNetworkUsage()
+- [ ] getMemoryUsage()
+- [ ] getMetrics()
+- [ ] getDiskUsage()
+- [ ] getVMCPUUsage()
+- [ ] getVMMemoryUsage()
+- [ ] getVMNetworkPacketsReceived()
+- [ ] getVMNetworkPacketsSent()
+- [ ] getNumVMsOn()
+- [ ] getNumVMs()
+- [ ] getVMsOn()
+- [ ] getLabOverview()
+- [ ] getCourseList()
+- [ ] getTags()
+- [ ] getUsersList()
+- [ ] getRoles()
+- [ ] getPermissions()
+- [ ] getHarvesterVMList()
+- [ ] getActivityLog()
+- [ ] getBashHistory()
+- [ ] getRunningProcesses()
+- [ ] getFileMonitoring()
+- [ ] handleEvent() (Seek alternative)
+- [ ] postActivityLog()
+- [ ] powerOnVM()
+- [ ] authenticate()
+
 ## API Reference
 
 ### REST API
