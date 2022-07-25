@@ -72,7 +72,19 @@ class Proxmox:
             Returns:
                 list: List of nodes.
         """
-        return self.get_resource("nodes")
+        return self.get_resource("nodes").get("data")
+
+    def get_node(self, node_name):
+        """_summary_
+            Get a node from the hypervisor.
+
+            Args:
+                node_name (str): Name of the node.
+
+            Returns:
+                dict: Node status/details.
+        """
+        return self.get_resource(f"nodes/{node_name}/status").get("data")
 
     def get_vms(self):
         """_summary_
@@ -83,15 +95,67 @@ class Proxmox:
         """
         node_list = self.get_nodes()
         # Parse node list to pull out node names
-        node_names = [node.get("node") for node in node_list.get("data")]
+        node_names = [node.get("node") for node in node_list]
         # Get virtual machines from each node and merge into one list
         vm_list = []
         for node in node_names:
-            vm_data = self.get_resource(f"nodes/{node}/qemu")
-            vm_data = vm_data.get("data")
+            vm_data = self.get_resource(f"nodes/{node}/qemu").get("data")
             # Append VM data to list
             for vm in vm_data:
                 vm['node'] = node
+                # Sort VM data by key
+                vm = dict(sorted(vm.items()))
                 vm_list.append(vm)
         # Return VM list
         return vm_list
+
+    def get_vms_on_node(self, node_name):
+        """_summary_
+            Get all virtual machines from a node.
+
+            Args:
+                node_name (str): Name of the node.
+
+            Returns:
+                list: List of virtual machines.
+        """
+        vm_list = self.get_resource(f"nodes/{node_name}/qemu").get("data")
+        for vm in vm_list:
+            vm['node'] = node_name
+            # Sort VM data by key
+            vm = dict(sorted(vm.items()))
+        return vm_list
+
+    def get_vm_by_id(self, node_name, vm_id):
+        """_summary_
+            Get a virtual machine from the hypervisor by ID.
+
+            Args:
+                node_name (str): Name of the node.
+                vm_id (int): ID of the virtual machine.
+
+            Returns:
+                dict: Virtual machine status/details.
+        """
+        vm_data = self.get_resource(f"nodes/{node_name}/qemu/{vm_id}/status/current").get("data")
+        vm_data['node'] = node_name
+        return vm_data
+
+    def get_vm_by_name(self, vm_name):
+        """_summary_
+            Get a virtual machine from the hypervisor by name.
+            (Warning, this is more expensive than getting by ID due to looping through all VMs/nodes.)
+
+            Args:
+                node_name (str): Name of the node.
+                vm_name (str): Name of the virtual machine.
+
+            Returns:
+                dict: Virtual machine status/details.
+        """
+        # Cant get VM by name, so get all VMs and loop through them to get the ID
+        vm_list = self.get_vms()
+        for vm in vm_list:
+            if vm.get("name") == vm_name:
+                return self.get_vm_by_id(vm.get("node"), vm.get("vmid"))
+        return None
