@@ -1,0 +1,34 @@
+{
+    "data": [
+        {
+            "node": "proxmox-dev-1",
+            "ssl_fingerprint": "FF:FF:FF:FF:FF",
+            "uptime": 12560,
+            "type": "node",
+            "cpu": 0.000676853037480534,
+            "mem": 2010365952,
+            "maxdisk": 100861726720,
+            "status": "online",
+            "id": "node/proxmox-dev-1",
+            "level": "",
+            "maxmem": 202793304064,
+            "maxcpu": 32,
+            "disk": 6630146048
+        },
+        {
+            "disk": 2805702656,
+            "maxcpu": 32,
+            "uptime": 15236,
+            "cpu": 0.000646381180580666,
+            "type": "node",
+            "ssl_fingerprint": "FF:FF:FF:FF:FF",
+            "level": "",
+            "maxmem": 202793304064,
+            "mem": 1869201408,
+            "maxdisk": 100861726720,
+            "status": "online",
+            "id": "node/proxmox-dev",
+            "node": "proxmox-dev"
+        }
+    ]
+}

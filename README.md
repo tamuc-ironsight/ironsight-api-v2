@@ -32,16 +32,16 @@ uvicorn main:ironsight_api --reload
 
 ## Ironsight API Migration Progress
 
-- [ ] getVMList()
+- [X] getVMList() -> getVMs()
 - [ ] getLabList()
 - [ ] getTemplateList()
 - [ ] getNewsList()
 - [ ] getDocCount()
-- [ ] getCPUUsage()
-- [ ] getNetworkUsage()
-- [ ] getMemoryUsage()
-- [ ] getMetrics()
-- [ ] getDiskUsage()
+- [X] getCPUUsage() -> getNodes()
+- [X] getNetworkUsage() -> getNodes()
+- [X] getMemoryUsage() -> getNodes()
+- [X] getMetrics() -> getNodes()
+- [X] getDiskUsage() -> getNodes()
 - [ ] getVMCPUUsage()
 - [ ] getVMMemoryUsage()
 - [ ] getVMNetworkPacketsReceived()
@@ -89,6 +89,26 @@ For all REST API requests, you will need your API key
 
 ```http
   GET /health
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `api_key` | `string` | **Required**. Your API key |
+
+#### Get virtual machine information
+
+```http
+  GET /vms
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `api_key` | `string` | **Required**. Your API key |
+
+#### Get hypervisor node information
+
+```http
+  GET /nodes
 ```
 
 | Parameter | Type     | Description                |

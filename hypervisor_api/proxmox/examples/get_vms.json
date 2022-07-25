@@ -1,0 +1,38 @@
+[
+    {
+        "status": "running",
+        "maxmem": 2147483648,
+        "diskwrite": 0,
+        "uptime": 11313,
+        "cpu": 0.000544749570121917,
+        "disk": 0,
+        "cpus": 1,
+        "netin": 60,
+        "diskread": 0,
+        "maxdisk": 34359738368,
+        "pid": 4104,
+        "name": "debian-vm",
+        "vmid": 100,
+        "mem": 38542507,
+        "netout": 0,
+        "node": "proxmox-dev-1"
+    },
+    {
+        "status": "running",
+        "maxmem": 2147483648,
+        "diskwrite": 0,
+        "uptime": 11313,
+        "cpu": 0.000544749570121917,
+        "disk": 0,
+        "cpus": 1,
+        "netin": 60,
+        "diskread": 0,
+        "maxdisk": 34359738368,
+        "pid": 4104,
+        "name": "ubuntu-vm",
+        "vmid": 100,
+        "mem": 38542507,
+        "netout": 0,
+        "node": "proxmox-dev"
+    }
+]

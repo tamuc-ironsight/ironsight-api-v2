@@ -14,10 +14,10 @@ def init_hypervisor(hypervisor):
     """
     try:
         if hypervisor == "proxmox":
-            from hypervisors.proxmox import Proxmox
+            from hypervisor_api.proxmox.proxmox import Proxmox
             return Proxmox()
         elif hypervisor == "harvester":
-            from hypervisors.harvester import Harvester
+            from hypervisor_api.harvester.harvester import Harvester
             return Harvester()
         else:
             raise Exception("Hypervisor not found.")
