@@ -25,7 +25,7 @@ class Proxmox:
         # Set up hypervisor URL / URL schema
         self.url_schema = "{hypervisor_url}/api2/json/{resource}"
 
-    def get_resource(self, resource):
+    def get_resource(self, resource, params=None):
         """_summary_
             Get a resource from the Proxmox API.
 
@@ -38,7 +38,33 @@ class Proxmox:
         url = self.url_schema.format(
             hypervisor_url=self.hypervisor_url, resource=resource)
         response = requests.get(url, headers={
-                                "Accept": "application/json", "Authorization": f"PVEAPIToken={self.hypervisor_token_id}={self.hypervisor_secret_key}"})
+                                "Accept": "application/json", "Authorization": f"PVEAPIToken={self.hypervisor_token_id}={self.hypervisor_secret_key}"}, params=params)
+        # Check for error in response
+        if response.status_code != 200:
+            print(f"Error: {response.status_code}")
+            print(f"Response: {response.text}")
+            return {"error": response.status_code, "response": response.text}
+        return response.json()
+
+    def post_resource(self, resource, data=None):
+        """_summary_
+            Post a resource to the Proxmox API.
+
+            Args:
+                resource (str): Resource to post.
+
+            Returns:
+                dict: Result of the API call.
+        """
+        url = self.url_schema.format(
+            hypervisor_url=self.hypervisor_url, resource=resource)
+        response = requests.post(url, headers={
+            "Accept": "application/json", "Authorization": f"PVEAPIToken={self.hypervisor_token_id}={self.hypervisor_secret_key}"}, data=data)
+        # Check for error in response
+        if response.status_code != 200:
+            print(f"Error: {response.status_code}")
+            print(f"Response: {response.text}")
+            return {"error": response.status_code, "response": response.text}
         return response.json()
 
     def get_summary(self):
@@ -137,7 +163,8 @@ class Proxmox:
             Returns:
                 dict: Virtual machine status/details.
         """
-        vm_data = self.get_resource(f"nodes/{node_name}/qemu/{vm_id}/status/current").get("data")
+        vm_data = self.get_resource(
+            f"nodes/{node_name}/qemu/{vm_id}/status/current").get("data")
         vm_data['node'] = node_name
         return vm_data
 
@@ -159,3 +186,156 @@ class Proxmox:
             if vm.get("name") == vm_name:
                 return self.get_vm_by_id(vm.get("node"), vm.get("vmid"))
         return None
+
+    def get_templates(self):
+        """_summary_
+            Get templates from the hypervisor.
+
+            Returns:
+                list: List of templates.
+        """
+        # Get list of VMs, if template=1 then it is a template
+        vm_list = self.get_vms()
+        template_list = [vm for vm in vm_list if vm.get("template") == 1]
+        return template_list
+
+    def start_vm(self, vm_name):
+        """_summary_
+            Power on a virtual machine.
+
+            Args:
+                vm_name (str): Name of the virtual machine.
+        """
+        try:
+            vm_id = self.get_vm_by_name(vm_name).get("vmid")
+            node_name = self.get_vm_by_name(vm_name).get("node")
+        except:
+            print(f"Error: VM {vm_name} not found")
+            return {"error": "VM not found"}
+        response = self.post_resource(
+            f"nodes/{node_name}/qemu/{vm_id}/status/start")
+        return response
+
+    def stop_vm(self, vm_name):
+        """_summary_
+            Power off a virtual machine.
+
+            Args:
+                vm_name (str): Name of the virtual machine.
+        """
+        try:
+            vm_id = self.get_vm_by_name(vm_name).get("vmid")
+            node_name = self.get_vm_by_name(vm_name).get("node")
+        except:
+            print(f"Error: VM {vm_name} not found")
+            return {"error": "VM not found"}
+        response = self.post_resource(
+            f"nodes/{node_name}/qemu/{vm_id}/status/stop")
+        return response
+
+    def reboot_vm(self, vm_name):
+        """_summary_
+            Reboot a virtual machine.
+
+            Args:
+                vm_name (str): Name of the virtual machine.
+        """
+        try:
+            vm_id = self.get_vm_by_name(vm_name).get("vmid")
+            node_name = self.get_vm_by_name(vm_name).get("node")
+        except:
+            print(f"Error: VM {vm_name} not found")
+            return {"error": "VM not found"}
+        response = self.post_resource(
+            f"nodes/{node_name}/qemu/{vm_id}/status/reboot")
+        return response
+
+    def create_vm(self, vm_name, template_name):
+        """_summary_
+            Create a virtual machine from a template.
+
+            Args:
+                template_name (str): Name of the template.
+                vm_name (str): Name of the virtual machine.
+        """
+        try:
+            template_vm_data = self.get_vm_by_name(template_name)
+            template_id = template_vm_data.get("vmid")
+            node_name = template_vm_data.get("node")
+        except:
+            print(f"Error: Template {template_name} not found")
+            return {"error": "Template not found"}
+
+        # Get a VMID not being used by any VM
+        vm_list = self.get_vms()
+        vm_ids = [vm.get("vmid") for vm in vm_list]
+        vm_id = max(vm_ids) + 1
+
+        # Parameters for creating a VM are newid, node and vmid
+        params = {
+            "newid": vm_id,
+            "node": node_name,
+            "vmid": template_id,
+            "name": vm_name
+        }
+
+        response = self.post_resource(
+            f"nodes/{node_name}/qemu/{template_id}/clone", params)
+        return response
+
+    def create_vnc_proxy(self, vm_name):
+        """_summary_
+            Create a VNC proxy for a virtual machine.
+
+            Args:
+                vm_name (str): Name of the virtual machine.
+        """
+        try:
+            vm_id = self.get_vm_by_name(vm_name).get("vmid")
+            node_name = self.get_vm_by_name(vm_name).get("node")
+        except:
+            print(f"Error: VM {vm_name} not found")
+            return {"error": "VM not found"}
+        response = self.post_resource(
+            f"nodes/{node_name}/qemu/{vm_id}/vncproxy")
+        return response
+
+    def configure_vnc(self, vm_name, port):
+        """_summary_
+            Configure VNC for a virtual machine.
+
+            Args:
+                vm_name (str): Name of the virtual machine.
+                port (int): VNC port.
+                password (str): VNC password.
+        """
+        print("Configuring VNC")
+        try:
+            vm_id = self.get_vm_by_name(vm_name).get("vmid")
+            node_name = self.get_vm_by_name(vm_name).get("node")
+        except:
+            print(f"Error: VM {vm_name} not found")
+            return {"error": "VM not found"}
+        params = {
+            "args": "-vnc 0.0.0.0:{}".format(port)
+        }
+        response = self.post_resource(
+            f"nodes/{node_name}/qemu/{vm_id}/config", params)
+        return response
+
+    def get_vm_config(self, vm_name):
+        """_summary_
+            Get configuration for a virtual machine.
+
+            Args:
+                vm_name (str): Name of the virtual machine.
+        """
+        try:
+            vm_id = self.get_vm_by_name(vm_name).get("vmid")
+            node_name = self.get_vm_by_name(vm_name).get("node")
+        except:
+            print(f"Error: VM {vm_name} not found")
+            return {"error": "VM not found"}
+        response = self.get_resource(
+            f"nodes/{node_name}/qemu/{vm_id}/config")
+        return response

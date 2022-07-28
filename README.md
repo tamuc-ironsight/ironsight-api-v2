@@ -62,7 +62,7 @@ uvicorn main:ironsight_api --reload
 - [ ] getFileMonitoring()
 - [ ] handleEvent() (Seek alternative)
 - [ ] postActivityLog()
-- [ ] powerOnVM()
+- [X] powerOnVM()
 - [ ] authenticate()
 
 ## API Reference
