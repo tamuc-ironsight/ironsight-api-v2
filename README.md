@@ -67,72 +67,8 @@ uvicorn main:ironsight_api --reload
 
 ## API Reference
 
-### REST API
-
-For all REST API requests, you will need your API key
-
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `api_key` | `string` | **Required**. Your API key |
-
-#### Get API information
-
-```http
-  GET /
-```
-
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `api_key` | `string` | **Required**. Your API key |
-
-#### Get API server health
-
-```http
-  GET /health
-```
-
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `api_key` | `string` | **Required**. Your API key |
-
-#### Get virtual machine information
-
-```http
-  GET /vms
-```
-
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `api_key` | `string` | **Required**. Your API key |
-
-#### Get hypervisor node information
-
-```http
-  GET /nodes
-```
-
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `api_key` | `string` | **Required**. Your API key |
-
-### Python API
-
-Set up your hypervisor object:
-
-```python
-import hypervisors
-hypervisor = hypervisors.init_hypervisor(HYPERVISOR)
-```
-
-#### Get API information
-
-```python
-  getSummary()
-```
-
-| Parameter | Type | Description |
-| :-------- | :--- | :---------- |
-| None      |      |             |
+- [REST API](./docs/rest_api.md)
+- [Python API](./docs/python_api.md)
 
 ## License
 
