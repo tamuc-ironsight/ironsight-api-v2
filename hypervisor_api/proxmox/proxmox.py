@@ -38,7 +38,7 @@ class Proxmox:
         url = self.url_schema.format(
             hypervisor_url=self.hypervisor_url, resource=resource)
         response = requests.get(url, headers={
-                                "Accept": "application/json", "Authorization": f"PVEAPIToken={self.hypervisor_token_id}={self.hypervisor_secret_key}"}, params=params)
+                                "Accept": "application/json", "Authorization": f"PVEAPIToken={self.hypervisor_token_id}={self.hypervisor_secret_key}"}, params=params, verify=False)
         # Check for error in response
         if response.status_code != 200:
             print(f"Error: {response.status_code}")
@@ -59,7 +59,7 @@ class Proxmox:
         url = self.url_schema.format(
             hypervisor_url=self.hypervisor_url, resource=resource)
         response = requests.post(url, headers={
-            "Accept": "application/json", "Authorization": f"PVEAPIToken={self.hypervisor_token_id}={self.hypervisor_secret_key}"}, data=data)
+            "Accept": "application/json", "Authorization": f"PVEAPIToken={self.hypervisor_token_id}={self.hypervisor_secret_key}"}, data=data, verify=False)
         # Check for error in response
         if response.status_code != 200:
             print(f"Error: {response.status_code}")

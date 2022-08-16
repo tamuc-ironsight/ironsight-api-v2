@@ -2,12 +2,15 @@
 
 import hypervisor_api
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 import os
 import json
 from dotenv import load_dotenv
 load_dotenv()
 
 # Get ENV variables
+SERVER_PORT = os.getenv("SERVER_PORT")
 HYPERVISOR = os.getenv("HYPERVISOR")
 
 
@@ -105,3 +108,6 @@ async def configure_vnc(vm_name: str, port: int):
 @ironsight_api.get("/vms/{vm_name}/config")
 async def get_vm_config(vm_name: str):
     return hypervisor.get_vm_config(vm_name)
+
+if __name__ == "__main__":
+    uvicorn.run(ironsight_api, host="0.0.0.0", port=int((SERVER_PORT)))
