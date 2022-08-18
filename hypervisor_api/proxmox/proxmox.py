@@ -20,8 +20,8 @@ class Proxmox:
         # Get hypervisor URL from class constructor
         self.hypervisor_url = os.getenv("HYPERVISOR_URL")
         # Get hypervisor API key from class constructor
-        self.hypervisor_token_id = os.getenv("HYPERVISOR_TOKEN_ID")
-        self.hypervisor_secret_key = os.getenv("HYPERVISOR_SECRET_KEY")
+        self.hypervisor_auth = os.getenv("HYPERVISOR_AUTH")
+        self.hypervisor_token = os.getenv("HYPERVISOR_TOKEN")
         # Set up hypervisor URL / URL schema
         self.url_schema = "{hypervisor_url}/api2/json/{resource}"
 
@@ -38,7 +38,7 @@ class Proxmox:
         url = self.url_schema.format(
             hypervisor_url=self.hypervisor_url, resource=resource)
         response = requests.get(url, headers={
-                                "Accept": "application/json", "Authorization": f"PVEAPIToken={self.hypervisor_token_id}={self.hypervisor_secret_key}"}, params=params, verify=False)
+                                "Accept": "application/json", "Authorization": self.hypervisor_auth}, params=params)
         # Check for error in response
         if response.status_code != 200:
             print(f"Error: {response.status_code}")
@@ -46,7 +46,7 @@ class Proxmox:
             return {"error": response.status_code, "response": response.text}
         return response.json()
 
-    def post_resource(self, resource, data=None):
+    def post_resource(self, resource, data=None, params=None):
         """_summary_
             Post a resource to the Proxmox API.
 
@@ -59,7 +59,7 @@ class Proxmox:
         url = self.url_schema.format(
             hypervisor_url=self.hypervisor_url, resource=resource)
         response = requests.post(url, headers={
-            "Accept": "application/json", "Authorization": f"PVEAPIToken={self.hypervisor_token_id}={self.hypervisor_secret_key}"}, data=data, verify=False)
+            "Accept": "application/json", "Authorization": self.hypervisor_auth, "CSRFPreventionToken": self.hypervisor_token}, data=data, params=params)
         # Check for error in response
         if response.status_code != 200:
             print(f"Error: {response.status_code}")
@@ -309,7 +309,6 @@ class Proxmox:
                 port (int): VNC port.
                 password (str): VNC password.
         """
-        print("Configuring VNC")
         try:
             vm_id = self.get_vm_by_name(vm_name).get("vmid")
             node_name = self.get_vm_by_name(vm_name).get("node")
@@ -320,7 +319,7 @@ class Proxmox:
             "args": "-vnc 0.0.0.0:{}".format(port)
         }
         response = self.post_resource(
-            f"nodes/{node_name}/qemu/{vm_id}/config", params)
+            f"nodes/{node_name}/qemu/{vm_id}/config", params=params)
         return response
 
     def get_vm_config(self, vm_name):

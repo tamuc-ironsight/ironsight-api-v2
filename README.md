@@ -18,9 +18,11 @@ To run this project, you will need to add the following environment variables to
 
 `HYPERVISOR_URL` (without the trailing slash `/`)
 
-`HYPERVISOR_TOKEN_ID`
+`HYPERVISOR_AUTH`
 
-`HYPERVISOR_SECRET_KEY`
+`HYPERVISOR_TOKEN`
+
+Hypervisors use different forms of authentication, but for Proxmox `HYPERVISOR_AUTH` is holds the ticket while `HYPERVISOR_TOKEN` holds the CSRF Prevention Token [More details](https://pve.proxmox.com/wiki/Proxmox_VE_API#Authentication)
 
 ## Deployment
 
