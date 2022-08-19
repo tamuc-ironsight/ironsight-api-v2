@@ -43,8 +43,10 @@ class Proxmox:
         if response.status_code != 200:
             print(f"Error: {response.status_code}")
             print(f"Response: {response.text}")
-            return {"error": response.status_code, "response": response.text}
-        return response.json()
+            return {"status": "error", "error": response.status_code, "response": response.text}
+        response = response.json()
+        response['status'] = "success"
+        return response
 
     def post_resource(self, resource, data=None, params=None):
         """_summary_
@@ -64,8 +66,10 @@ class Proxmox:
         if response.status_code != 200:
             print(f"Error: {response.status_code}")
             print(f"Response: {response.text}")
-            return {"error": response.status_code, "response": response.text}
-        return response.json()
+            return {"status": "error", "error": response.status_code, "response": response.text}
+        response = response.json()
+        response['status'] = "success"
+        return response
 
     def get_summary(self):
         """_summary_
@@ -98,7 +102,7 @@ class Proxmox:
             Returns:
                 list: List of nodes.
         """
-        return self.get_resource("nodes").get("data")
+        return self.get_resource("nodes")
 
     def get_node(self, node_name):
         """_summary_
@@ -110,7 +114,7 @@ class Proxmox:
             Returns:
                 dict: Node status/details.
         """
-        return self.get_resource(f"nodes/{node_name}/status").get("data")
+        return self.get_resource(f"nodes/{node_name}/status")
 
     def get_vms(self):
         """_summary_
@@ -119,7 +123,7 @@ class Proxmox:
             Returns:
                 list: List of virtual machines.
         """
-        node_list = self.get_nodes()
+        node_list = self.get_nodes().get("data")
         # Parse node list to pull out node names
         node_names = [node.get("node") for node in node_list]
         # Get virtual machines from each node and merge into one list
@@ -133,7 +137,7 @@ class Proxmox:
                 vm = dict(sorted(vm.items()))
                 vm_list.append(vm)
         # Return VM list
-        return vm_list
+        return {"status": "success", "data": vm_list}
 
     def get_vms_on_node(self, node_name):
         """_summary_
@@ -145,12 +149,15 @@ class Proxmox:
             Returns:
                 list: List of virtual machines.
         """
-        vm_list = self.get_resource(f"nodes/{node_name}/qemu").get("data")
-        for vm in vm_list:
-            vm['node'] = node_name
-            # Sort VM data by key
-            vm = dict(sorted(vm.items()))
-        return vm_list
+        vm_list = self.get_resource(f"nodes/{node_name}/qemu")
+        if vm_list.get("status") == "success":
+            for vm in vm_list.get("data"):
+                vm['node'] = node_name
+                # Sort VM data by key
+                vm = dict(sorted(vm.items()))
+            return vm_list
+        else:
+            return {"status": "error", "error": vm_list.get("error"), "response": vm_list.get("response")}
 
     def get_vm_by_id(self, node_name, vm_id):
         """_summary_
@@ -164,9 +171,12 @@ class Proxmox:
                 dict: Virtual machine status/details.
         """
         vm_data = self.get_resource(
-            f"nodes/{node_name}/qemu/{vm_id}/status/current").get("data")
+            f"nodes/{node_name}/qemu/{vm_id}/status/current")
+        if vm_data.get("status") == "error":
+            return {"status": "error", "error": vm_data.get("error"), "response": vm_data.get("response")}
+        vm_data = vm_data.get("data")
         vm_data['node'] = node_name
-        return vm_data
+        return {"status": "success", "data": vm_data}
 
     def get_vm_by_name(self, vm_name):
         """_summary_
@@ -181,11 +191,12 @@ class Proxmox:
                 dict: Virtual machine status/details.
         """
         # Cant get VM by name, so get all VMs and loop through them to get the ID
-        vm_list = self.get_vms()
+        vm_list = self.get_vms().get("data")
         for vm in vm_list:
             if vm.get("name") == vm_name:
-                return self.get_vm_by_id(vm.get("node"), vm.get("vmid"))
-        return None
+                vm_data = self.get_vm_by_id(vm.get("node"), vm.get("vmid"))
+                return {"status": "success", "data": vm_data}
+        return {"status": "error", "error": "VM not found"}
 
     def get_templates(self):
         """_summary_
@@ -195,7 +206,7 @@ class Proxmox:
                 list: List of templates.
         """
         # Get list of VMs, if template=1 then it is a template
-        vm_list = self.get_vms()
+        vm_list = self.get_vms().get("data")
         template_list = [vm for vm in vm_list if vm.get("template") == 1]
         return template_list
 
@@ -267,7 +278,7 @@ class Proxmox:
             return {"error": "Template not found"}
 
         # Get a VMID not being used by any VM
-        vm_list = self.get_vms()
+        vm_list = self.get_vms().get("data")
         vm_ids = [vm.get("vmid") for vm in vm_list]
         vm_id = max(vm_ids) + 1
 
@@ -315,6 +326,8 @@ class Proxmox:
         except:
             print(f"Error: VM {vm_name} not found")
             return {"error": "VM not found"}
+        # Subtract 5900 from the port, Proxmox adds 5900 to the arg
+        port = int(port) - 5900
         params = {
             "args": "-vnc 0.0.0.0:{}".format(port)
         }
