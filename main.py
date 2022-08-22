@@ -92,6 +92,11 @@ async def stop_vm(vm_name: str):
     return hypervisor.stop_vm(vm_name)
 
 
+@ironsight_api.post("/vms/{vm_name}/toggle_power")
+async def power_toggle_vm(vm_name: str):
+    return hypervisor.power_toggle_vm(vm_name)
+
+
 @ironsight_api.post("/vms/{vm_name}/reboot")
 async def reboot_vm(vm_name: str):
     return hypervisor.reboot_vm(vm_name)
