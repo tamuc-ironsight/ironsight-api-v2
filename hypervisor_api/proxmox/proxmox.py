@@ -194,7 +194,7 @@ class Proxmox:
         vm_list = self.get_vms().get("data")
         for vm in vm_list:
             if vm.get("name") == vm_name:
-                vm_data = self.get_vm_by_id(vm.get("node"), vm.get("vmid"))
+                vm_data = self.get_vm_by_id(vm.get("node"), vm.get("vmid")).get("data")
                 return {"status": "success", "data": vm_data}
         return {"status": "error", "error": "VM not found"}
 
@@ -218,8 +218,9 @@ class Proxmox:
                 vm_name (str): Name of the virtual machine.
         """
         try:
-            vm_id = self.get_vm_by_name(vm_name).get("vmid")
-            node_name = self.get_vm_by_name(vm_name).get("node")
+            vm_data = self.get_vm_by_name(vm_name).get("data")
+            vm_id = vm_data.get("vmid")
+            node_name = vm_data.get("node")
         except:
             print(f"Error: VM {vm_name} not found")
             return {"error": "VM not found"}
@@ -235,13 +236,42 @@ class Proxmox:
                 vm_name (str): Name of the virtual machine.
         """
         try:
-            vm_id = self.get_vm_by_name(vm_name).get("vmid")
-            node_name = self.get_vm_by_name(vm_name).get("node")
+            vm_data = self.get_vm_by_name(vm_name).get("data")
+            vm_id = vm_data.get("vmid")
+            node_name = vm_data.get("node")
         except:
             print(f"Error: VM {vm_name} not found")
             return {"error": "VM not found"}
+        print("Stopping VM...")
+        print(f'"nodes/{node_name}/qemu/{vm_id}/status/stop')
         response = self.post_resource(
             f"nodes/{node_name}/qemu/{vm_id}/status/stop")
+        return response
+
+    def power_toggle_vm(self, vm_name):
+        """_summary_
+            Toggle power on/off a virtual machine.
+
+            Args:
+                vm_name (str): Name of the virtual machine.
+        """
+        try:
+            vm_data = self.get_vm_by_name(vm_name).get("data")
+            vm_id = vm_data.get("vmid")
+            node_name = vm_data.get("node")
+        except:
+            print(f"Error: VM {vm_name} not found")
+            return {"error": "VM not found"}
+        # If VM is running, power off
+        if vm_data.get("status") == "running":
+            print(f"Powering off VM {vm_name}")
+            response = self.post_resource(
+                f"nodes/{node_name}/qemu/{vm_id}/status/stop")
+        # Else power on
+        else:
+            print(f"Powering on VM {vm_name}")
+            response = self.post_resource(
+                f"nodes/{node_name}/qemu/{vm_id}/status/start")
         return response
 
     def reboot_vm(self, vm_name):
