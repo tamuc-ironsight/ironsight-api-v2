@@ -407,6 +407,9 @@ class Proxmox:
         # If node name is provided, get usage graph for a specific node
         if node_name:
             graph_data = self.get_resource(f"nodes/{node_name}/rrddata?timeframe=hour&cf=AVERAGE")
+            if graph_data.get("status") == "error":
+                logger.error(f"Error: Node {node_name} not found")
+                return {"status": "error", "error": "Node not found", "data": []}
             graph_data["node"] = node_name
             response = graph_data
 
@@ -414,8 +417,12 @@ class Proxmox:
         else:
             graph_data = []
             # Get a list of nodes
-            node_list = self.get_nodes().get("data")
-            logger.debug(node_list)
+            node_list = self.get_nodes()
+            if node_list.get("status") == "error":
+                logger.error(f"Error: Node list could not be retrieved")
+                return {"status": "error", "error": "Node list could not be retrieved", "data": []}
+            else:
+                node_list = node_list.get("data")
             # Get usage graph for each node
             for node in node_list:
                 node_name = node.get("node")
@@ -426,3 +433,19 @@ class Proxmox:
             response = {"status": "success", "data": graph_data}
         
         return response
+
+    def get_vm_usage_graph(self, vm_name):
+        """_summary_
+            Get usage graph for a virtual machine.
+        """
+        try:
+            vm_id = self.get_vm_by_name(vm_name).get("vmid")
+            logger.debug(vm_id)
+            node_name = self.get_vm_by_name(vm_name).get("node")
+            logger.debug(node_name)
+        except:
+            print(f"Error: VM {vm_name} not found")
+            return {"error": "VM not found"}
+        graph_data = self.get_resource(
+            f"nodes/{node_name}/qemu/{vm_id}/rrddata?timeframe=hour&cf=AVERAGE")
+        return graph_data
