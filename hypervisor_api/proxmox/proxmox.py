@@ -430,6 +430,8 @@ class Proxmox:
                 temp_data["data"] = self.get_resource(f"nodes/{node_name}/rrddata?timeframe=hour&cf=AVERAGE").get("data")
                 temp_data["node"] = node_name
                 graph_data.append(temp_data)
+            # Sort the list by node name
+            graph_data.sort(key=lambda x: x.get("node"))
             response = {"status": "success", "data": graph_data}
         
         return response
@@ -461,4 +463,6 @@ class Proxmox:
                 temp_data["node"] = node_name
                 temp_data["vm_name"] = vm.get("name")
                 graph_data.append(temp_data)
+            # Sort graph data by vm_name
+            graph_data = sorted(graph_data, key=lambda k: k['vm_name'])
         return graph_data
