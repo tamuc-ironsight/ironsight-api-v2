@@ -6,8 +6,11 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import os
 import json
+import sys
+from loguru import logger
 from dotenv import load_dotenv
 load_dotenv()
+
 
 # Get ENV variables
 SERVER_PORT = os.getenv("SERVER_PORT")
@@ -101,6 +104,7 @@ async def power_toggle_vm(vm_name: str):
 async def reboot_vm(vm_name: str):
     return hypervisor.reboot_vm(vm_name)
 
+
 @ironsight_api.post("/vms/create")
 async def create_vm(vm_name: str, template_name: str):
     return hypervisor.create_vm(vm_name, template_name)
@@ -110,9 +114,17 @@ async def create_vm(vm_name: str, template_name: str):
 async def configure_vnc(vm_name: str, port: int):
     return hypervisor.configure_vnc(vm_name, port)
 
+
 @ironsight_api.get("/vms/{vm_name}/config")
 async def get_vm_config(vm_name: str):
     return hypervisor.get_vm_config(vm_name)
 
-if __name__ == "__main__":
+@logger.catch
+def main():
     uvicorn.run(ironsight_api, host="0.0.0.0", port=int((SERVER_PORT)))
+
+
+if __name__ == "__main__":
+    logger.add(
+        sys.stderr, format="{time} {level} {message}", filter="my_module", level="INFO")
+    main()

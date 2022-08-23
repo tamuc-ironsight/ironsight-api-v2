@@ -2,6 +2,7 @@
 
 import requests
 import os
+from loguru import logger
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -41,8 +42,8 @@ class Proxmox:
                                 "Accept": "application/json", "Authorization": self.hypervisor_auth}, params=params)
         # Check for error in response
         if response.status_code != 200:
-            print(f"Error: {response.status_code}")
-            print(f"Response: {response.text}")
+            logger.error(f"Error: {response.status_code}")
+            logger.error(f"Response: {response.text}")
             return {"status": "error", "error": response.status_code, "response": response.text}
         response = response.json()
         response['status'] = "success"
@@ -64,8 +65,8 @@ class Proxmox:
             "Accept": "application/json", "Authorization": self.hypervisor_auth, "CSRFPreventionToken": self.hypervisor_token}, data=data, params=params)
         # Check for error in response
         if response.status_code != 200:
-            print(f"Error: {response.status_code}")
-            print(f"Response: {response.text}")
+            logger.error(f"Error: {response.status_code}")
+            logger.error(f"Response: {response.text}")
             return {"status": "error", "error": response.status_code, "response": response.text}
         response = response.json()
         response['status'] = "success"
@@ -116,6 +117,7 @@ class Proxmox:
         """
         return self.get_resource(f"nodes/{node_name}/status")
 
+    @logger.catch
     def get_vms(self):
         """_summary_
             Get virtual machines from the hypervisor.
@@ -125,7 +127,11 @@ class Proxmox:
         """
         node_list = self.get_nodes().get("data")
         # Parse node list to pull out node names
-        node_names = [node.get("node") for node in node_list]
+        try:
+            node_names = [node.get("node") for node in node_list]
+        except Exception as e:
+            logger.error(e)
+            return {"status": "error", "error": e, "data": []}
         # Get virtual machines from each node and merge into one list
         vm_list = []
         for node in node_names:
@@ -194,7 +200,8 @@ class Proxmox:
         vm_list = self.get_vms().get("data")
         for vm in vm_list:
             if vm.get("name") == vm_name:
-                vm_data = self.get_vm_by_id(vm.get("node"), vm.get("vmid")).get("data")
+                vm_data = self.get_vm_by_id(
+                    vm.get("node"), vm.get("vmid")).get("data")
                 return {"status": "success", "data": vm_data}
         return {"status": "error", "error": "VM not found"}
 
