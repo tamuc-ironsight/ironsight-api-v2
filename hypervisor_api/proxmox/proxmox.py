@@ -388,3 +388,41 @@ class Proxmox:
         response = self.get_resource(
             f"nodes/{node_name}/qemu/{vm_id}/config")
         return response
+
+    def get_summary(self):
+        """_summary_
+            Get usage summary for all nodes/VMs (realtime).
+        """
+        response = self.get_resource("cluster/resources")
+        return response
+
+    def get_usage_graph(self, node_name=None):
+        """_summary_
+            Get usage graph for a node.
+        """
+
+        # Init in case something goes wrong
+        graph_data = None
+
+        # If node name is provided, get usage graph for a specific node
+        if node_name:
+            graph_data = self.get_resource(f"nodes/{node_name}/rrddata?timeframe=hour&cf=AVERAGE")
+            graph_data["node"] = node_name
+            response = graph_data
+
+        # If no node name is provided, get usage graph for all nodes
+        else:
+            graph_data = []
+            # Get a list of nodes
+            node_list = self.get_nodes().get("data")
+            logger.debug(node_list)
+            # Get usage graph for each node
+            for node in node_list:
+                node_name = node.get("node")
+                temp_data = {}
+                temp_data["data"] = self.get_resource(f"nodes/{node_name}/rrddata?timeframe=hour&cf=AVERAGE").get("data")
+                temp_data["node"] = node_name
+                graph_data.append(temp_data)
+            response = {"status": "success", "data": graph_data}
+        
+        return response

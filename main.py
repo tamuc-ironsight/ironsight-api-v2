@@ -119,6 +119,17 @@ async def configure_vnc(vm_name: str, port: int):
 async def get_vm_config(vm_name: str):
     return hypervisor.get_vm_config(vm_name)
 
+
+@ironsight_api.get("/usage")
+async def get_usage_graph():
+    return hypervisor.get_usage_graph()
+
+
+@ironsight_api.get("/usage/{node_name}")
+async def get_usage_graph(node_name: str):
+    return hypervisor.get_usage_graph(node_name)
+
+
 @logger.catch
 def main():
     uvicorn.run(ironsight_api, host="0.0.0.0", port=int((SERVER_PORT)))
