@@ -462,6 +462,7 @@ class Proxmox:
                     f"nodes/{node_name}/qemu/{vm_id}/rrddata?timeframe=hour&cf=AVERAGE").get("data")
                 temp_data["node"] = node_name
                 temp_data["vm_name"] = vm.get("name")
+                temp_data["status"] = vm.get("status")
                 graph_data.append(temp_data)
             # Sort graph data by vm_name
             graph_data = sorted(graph_data, key=lambda k: k['vm_name'])
