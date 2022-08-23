@@ -120,14 +120,19 @@ async def get_vm_config(vm_name: str):
     return hypervisor.get_vm_config(vm_name)
 
 
-@ironsight_api.get("/usage")
+@ironsight_api.get("/usage/nodes")
 async def get_usage_graph():
     return hypervisor.get_usage_graph()
 
 
-@ironsight_api.get("/usage/{node_name}")
+@ironsight_api.get("/usage/nodes/{node_name}")
 async def get_usage_graph(node_name: str):
     return hypervisor.get_usage_graph(node_name)
+
+
+@ironsight_api.get("/usage/vms")
+async def get_vm_usage_graph():
+    return hypervisor.get_vm_usage_graph()
 
 
 @logger.catch
